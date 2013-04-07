@@ -27,57 +27,58 @@ from utils.subproc import call, check_call
 
 def download(uri, target_file):
     '''Downloads an artifact into target.'''
-    log.info('Downloading %s' % uri)
-    if uri.startswith('http://cdimage.ubuntu.com'):
-        subprocess.check_call(['wget', '-c', uri, '-O', target_file])
+    settings.LOG.info('Downloading %s' % uri)
+    
+    if uri.startswith(settings.UTOUCH_BASE_URI):
+        check_call(['wget', '-c', uri, '-O', target_file])
     else:
-        subprocess.check_call(['curl', '-C', '-', uri, '-o', target_file])
+        check_call(['curl', '-C', '-', uri, '-o', target_file])
 
 
 class DownloadManager(object):
+	'''Interface to downloading.'''
+	def __init__(self, base_uri, images_dir, artifact_list, offline=False):
+		if not os.path.isdir(images_dir):
+			raise RuntimeError('Directory %s does not exist or is not a '
+                               'direcotry' % images_dir)
+		self._base_uri = base_uri
+		self._images_dir = images_dir
+		self._artifact_list = artifact_list
+		self._targets = {}
+		self._files = {}
+		self._offline = offline
 
-    def __init__(self, base_uri, download_dir, artifact_list, offline=False):
-        if not os.path.isdir(download_dir):
-            raise RuntimeError('Directory %s does not exist or is not a '
-                               'direcotry' % download_dir)
-        self._base_uri = base_uri
-        self._download_dir = download_dir
-        self._artifact_list = artifact_list
-        self._targets = {}
-        self._files = {}
-        self._offline = offline
+	@property
+	def files(self):
+		return self._files
 
-    @property
-    def files(self):
-        return self._files
+	def _target_file(self, artifact):
+		'''Constructs the path for the file to download.'''
+		uri = '%s/%s' % (self._base_uri, artifact)
+		target = os.path.join(self._images_dir, '%s' % (artifact))
+		self._targets[artifact] = target
+		if not artifact.endswith('.md5sum'):
+			self._files[artifact] = target
+		return {'uri': uri, 'target_file': target}
 
-    def _target_file(self, artifact):
-        '''Constructs the path for the file to download.'''
-        uri = '%s/%s' % (self._base_uri, artifact)
-        target = os.path.join(self._download_dir, '%s' % (artifact))
-        self._targets[artifact] = target
-        if not artifact.endswith('.md5sum'):
-            self._files[artifact] = target
-        return {'uri': uri, 'target_file': target}
+	def download(self, validate=True):
+		'''Downloads arget_uri.'''
+		for artifact in self._artifact_list:
+			if artifact == None:
+				continue
+			target_file = self._target_file(artifact)
+			if not self._offline:
+				download(**target_file)
+			if validate:
+				md5file = '%s.md5sum' % artifact
+				if not self._offline:
+					download(**self._target_file(md5file))
+				self.validate(md5file)
+			if artifact.endswith('.gz'):
+				call(['gunzip', self._files[artifact]])
+				self._files[artifact] = os.path.splitext(self._files[artifact])[0]
 
-    def download(self, validate=True):
-        '''Downloads arget_uri.'''
-        for artifact in self._artifact_list:
-            if artifact == None:
-                continue
-            target_file = self._target_file(artifact)
-            if not self._offline:
-                download(**target_file)
-            if validate:
-                md5file = '%s.md5sum' % artifact
-                if not self._offline:
-                    download(**self._target_file(md5file))
-                self.validate(md5file)
-            if artifact.endswith('.gz'):
-                subprocess.call(['gunzip', self._files[artifact]])
-                self._files[artifact] = os.path.splitext(self._files[artifact])[0]
-
-    def validate(self, artifact):
-        '''Validates downloaded files against md5sum.'''
-        subprocess.check_call(['md5sum', '-c', '%s' % artifact],
-                              cwd=self._download_dir)
+	def validate(self, artifact):
+		'''Validates downloaded files against md5sum.'''
+		check_call(['md5sum', '-c', '%s' % artifact], 
+        		   cwd=self._images_dir)

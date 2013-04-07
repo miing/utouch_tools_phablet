@@ -25,10 +25,9 @@ from utils.subproc import call, check_call, check_output
 
 class AndroidBridge(object):
     '''Interface to adb.'''
-
     def __init__(self, device=None):
         if device:
-            log.info('Setting adb for device %s' % device)
+            settings.LOG.info('Setting adb for device %s' % device)
             self._adb_cmd = 'adb -s %s %%s' % device
         else:
             self._adb_cmd = 'adb %s'
@@ -37,63 +36,63 @@ class AndroidBridge(object):
     @property
     def device(self):
         return self._device
-
-    def start(self):
-        '''Attempts to start adb if not running.'''
-        log.debug('Starting adb server')
-        cmd = 'start-server'
-        call(self._adb_cmd % cmd)
-
+	
+	def start(self):
+		'''Attempts to start adb if not running.'''
+		settings.LOG.debug('Starting adb server')
+		cmd = 'start-server'
+		call(self._adb_cmd % cmd, shell=True)	
+			 
     def push(self, src, dst):
         '''Performs and adb push.'''
-        log.info('Pushing %s to %s' % (src, dst))
+        settings.LOG.info('Pushing %s to %s' % (src, dst))
         cmd = 'push %s %s' % (src, dst)
-        call(self._adb_cmd % cmd)
+        call(self._adb_cmd % cmd, shell=True)
 
     def pull(self, src, dst):
         '''Performs and adb pull.'''
-        log.info('Pulling %s to %s' % (src, dst))
+        settings.LOG.info('Pulling %s to %s' % (src, dst))
         cmd = 'pull %s %s' % (src, dst)
-        call(self._adb_cmd % cmd)
+        call(self._adb_cmd % cmd, shell=True)
 
     def root(self):
         '''Set device to work as root.'''
-        call(self._adb_cmd % 'root')
-        call(self._adb_cmd % 'wait-for-device')
+        call(self._adb_cmd % 'root', shell=True)
+        call(self._adb_cmd % 'wait-for-device', shell=True)
 
     def chmod(self, filename, mode):
         '''Performs a chmod on target device.'''
         cmd = 'shell chmod %s %s' % (mode, filename)
-        call(self._adb_cmd % cmd)
+        call(self._adb_cmd % cmd, shell=True)
 
     def getprop(self, android_property):
         '''Returns an android property.'''
         cmd = 'shell getprop %s ' % (android_property)
-        return check_output(self._adb_cmd % cmd)
+        return check_output(self._adb_cmd % cmd, shell=True)
 
     def tcp_forward(self, src, dst):
         '''Creates a tcp forwarding rule.'''
         cmd = 'forward tcp:%s tcp:%s' % (src, dst)
-        call(self._adb_cmd % cmd)
+        call(self._adb_cmd % cmd, shell=True)
 
     def shell(self, command):
         '''Runs shell command and returns output'''
         cmd = 'shell %s' % command
-        return check_output(self._adb_cmd % cmd)
+        return check_output(self._adb_cmd % cmd, shell=True)
 
     def chroot(self, command, root='data/ubuntu'):
         '''Runs command in chroot.'''
-        log.debug('Running in chroot: %s' % command)
+        settings.LOG.debug('Running in chroot: %s' % command)
         cmd = 'shell "chroot %s %s"' % (root, command)
-        call(self._adb_cmd % cmd)
+        call(self._adb_cmd % cmd, shell=True)
 
     def reboot(self, recovery=False, bootloader=False):
         '''Reboots device.'''
-        log.debug('Rebooting device')
+        settings.LOG.debug('Rebooting device')
         if recovery:
             cmd = 'reboot recovery'
         elif bootloader:
             cmd = 'reboot bootloader'
         else:
             cmd = 'reboot'
-        call(self._adb_cmd % cmd)
+        call(self._adb_cmd % cmd, shell=True)
