@@ -132,7 +132,7 @@ UBUNTU_TOUCH_REPOS = {
 
 
 #####################
-# Devices		    #
+# Devices           #
 #####################
 # All target devices for Ubuntu Touch available for now
 UTOUCH_VALID_DEVICES = (
