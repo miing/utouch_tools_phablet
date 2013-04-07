@@ -28,16 +28,86 @@ from config import settings
 from utils.subproc import check_call, check_output, CalledProcessError
 
 
-class StringSplitAction(argparse.Action):
-     def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, values.split(','))
+def _validate_device(device):
+	'''Check if target device is supported'''
+	if device not in settings.UTOUCH_VALID_DEVICES: 
+		settings.LOG.error('Target device [%s] not supported' % device)
+		sys.exit(1)
 
 
-def validate_vendors(vendors):
-    for vendor in vendors:
-        if vendor not in valid_vendors:
-            log.error('Vendor device %s not supported' % vendor)
-            exit(1)
+def _sync_target_repository(repo, path):
+	'''Syncs every target repository'''
+	if not os.path.exists(path): 
+		cmd = 'bzr branch %s %s' % (repo, path) 
+		settings.LOG.info('Branching %s into %s' % (repo, path)) 
+		check_call(cmd, shell=True)
+	else: 
+		settings.LOG.warning('Skipping %s, already synced' % path)
+
+
+def _sync_ubuntu_android_repositories():
+	'''Syncs ubuntu android-side sources'''
+	settings.LOG.info('Syncing android-side ubuntu sources')
+	
+	if not os.path.exists(settings.UBUNTU_ANDROID_PATH): 
+		os.mkdir(settings.UBUNTU_ANDROID_PATH) 
+	for path in settings.UBUNTU_ANDROID_REPOS.keys():
+		_sync_target_repository(settings.UBUNTU_ANDROID_REPOS[path], path)
+
+
+def _install_base_dependencies(pkgs):
+	"""Install base dependencies into host"""
+	if pkgs:
+		for pkg in pkgs:
+			check_call(settings.IPKG % pkg, shell=True, executable='/bin/bash') 
+
+
+def _check_base_dependencies():
+    """Check base dependencies required for building"""
+    if not settings.BASE_DEPENDENCIES:
+		settings.LOG.error("Dependencies on Machine [%s], not supported yet" % 
+				  settings.MACHINE_TYPE)
+		sys.exit(1)
+	
+    required = []
+    for pkg in settings.BASE_DEPENDENCIES:
+        output = check_output(settings.LPKG % pkg, shell=True).strip()
+        
+        if output != '1':
+            required.append(pkg)
+    return required
+
+
+def setup_target_device(device):
+	'''Setup target device to build'''
+	_validate_device(device)
+	
+	cmd = '. build/envsetup.sh'
+	cmd += '; breakfast %s' % device
+	settings.LOG.debug('Executing %s' % cmd)
+	check_call(cmd, shell=True, executable='/bin/bash')
+
+
+def sync_ubuntu_repositories():
+	'''Syncs ubuntu sources'''
+	_sync_ubuntu_android_repositories()
+
+
+def sync_android_repositories(jobs='1', reference=None):
+    '''Syncs android sources'''
+    try:
+        settings.LOG.info('Syncing android repositories')
+        init_cmd = ['repo', 'init',
+                    '-u', settings.CYANOGENMOD_REPO_INIT, 
+                    '-b', settings.CYANOGENMOD_REPO_BRANCH
+                    ]
+        if reference:
+            init_cmd += ['--reference', reference]
+        check_call(init_cmd)
+        check_call(['repo', 'sync', '-j%s' % jobs])
+    except CalledProcessError:
+        settings.LOG.error('Error while trying to sync repositories')
+        sys.exit(1)
 
 
 def setup_sync_dir(target_directory, continue_sync=False):
@@ -48,111 +118,85 @@ def setup_sync_dir(target_directory, continue_sync=False):
                 raise OSError('%s is not a directory' %
                              target_directory)
             elif not os.path.isdir(target_directory):
-                log.debug('Creating sync directory %s' % target_directory)
+                settings.LOG.debug('Creating sync directory %s' % target_directory)
                 os.mkdir(target_directory)
             elif os.listdir(target_directory):
                 raise OSError('%s is not empty and not using -c' %
                              target_directory)
         except OSError as e:
             if not e.message:
-                log.error('Cannot setup environment in %s' % 
+                settings.LOG.error('Cannot setup environment in %s' % 
                           target_directory)
             else:
-                log.error(e.message)
-            exit(1)
-    log.info('Changing to workdir %s' % target_directory)
+                settings.LOG.error(e.message)
+            sys.exit(1)
+    settings.LOG.info('Changing to workdir %s' % target_directory)
     os.chdir(target_directory)
 
 
-def sync_repository(jobs='1', reference=None):
-    '''Syncs android sources with the repo command'''
-    try:
-        log.info('Initializing repository')
-        init_cmd = ['repo', 'init',
-                    '-u', repo_init, '-b', repo_branch]
-        if reference:
-            init_cmd += ['--reference', reference]
-        subprocess.check_call(init_cmd)
-        subprocess.check_call(['repo',
-                               'sync',
-                               '-j%s' % jobs]
-                             )
-    except subprocess.CalledProcessError:
-        log.error('Error while trying to sync repository')
-        exit(1)
-
-
-def branch_target(repo, target_directory):
-    if not path.exists(target_directory):
-        cmd = 'bzr branch %s %s' % (repo, target_directory)
-        log.info('Branching %s into %s' % (repo, target_directory))
-        subprocess.check_call(cmd, shell=True)
-    else:
-        # Might be a good idea to pull for vendor branches
-        log.warning('Skipping %s, already branched' % target_directory)
-
-
-def sync_vendors(vendors):
-    cmd = '''. build/envsetup.sh'''
-    for vendor in vendors:
-        cmd += '; breakfast %s' % vendor
-    log.debug('Executing %s' % cmd)
-    subprocess.check_call(cmd, shell=True, executable='/bin/bash')
-
-
-def setup_branches():
-    if not path.exists(ubuntu_dir):
-        os.mkdir(ubuntu_dir)
-    for branch in branches.keys():
-        branch_target(branches[branch], branch)
+def install_base_dependencies():
+	settings.LOG.info('Installing base dependencies')
+	
+	pkgs = _check_base_dependencies()
+	if pkgs:
+		_install_base_dependencies(pkgs)
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
+	'''Parses arguments passed in to script'''
+	parser = argparse.ArgumentParser(
         description='Phablet Development Environment Setup Tool')
-    parser.add_argument('-v',
-                        '--vendors',
-                        dest='vendors',
-                        help='''Comma separated list of devices to Setup
-                        such as maguro, manta, mako, grouper''',
-                        action=StringSplitAction,
+	parser.add_argument('-b',
+                        '--base',
+                        dest='base',
+                        action='store_true',
+                        help='''Install base dependencies''',
+                        default=False,
                        )
-    parser.add_argument('-j',
+	parser.add_argument('-j',
                         '--jobs',
+                        type=int,
                         dest='jobs',
                         help='''Ammount of sync jobs''',
                         default='1',
-                       )
-    parser.add_argument('-c',
+                       ) 
+	parser.add_argument('-c',
                         '--continue',
                         dest='continue_sync',
                         action='store_true',
                         help='''Continue a previously started sync''',
                         default=False,
                        )
-    parser.add_argument('-r',
+	parser.add_argument('-r',
                         '--reference',
                         help='''Use another dev environment as reference for git''',
                         default='',
                        )
-    parser.add_argument('target_directory',
+	parser.add_argument('-d',
+                        '--device',
+                        dest='device',
+                        help='''Setup target device to build''',
+                        action='store',
+                        default=None
+                       )
+	parser.add_argument('target_directory',
                         help='Target directory for sources',
                        )
-    return parser.parse_args()
+	return parser.parse_args()
 
 
 def main(args):
-    if args.vendors:
-        validate_vendors(args.vendors)
-    setup_sync_dir(path.abspath(path.expanduser(args.target_directory)),
-                   args.continue_sync)
-    sync_repository(args.jobs, args.reference)
-    if args.vendors:
-        sync_vendors(args.vendors)
-    setup_branches()
+	if args.base:
+		install_base_dependencies()
+	if args.target_directory:
+		setup_sync_dir(os.path.abspath(os.path.expanduser(args.target_directory)),
+			           args.continue_sync)
+		sync_android_repositories(args.jobs, args.reference)
+		sync_ubuntu_repositories()
+		if args.vendors:
+			setup_target_device(args.device)
 
 
 if __name__ == "__main__":
     args = parse_arguments()
     main(args)
-
