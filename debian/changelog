@@ -1,0 +1,124 @@
+phablet-tools (0.9-0phablet1) UNRELEASED; urgency=low
+
+  [ Mathieu Trudel-Lapierre ]
+  * debian/control:
+    - Wrap and sort Depends/Build-Depends, use trailing commas.
+    - Add/Update Vcs-Bzr, Vcs-Browser, add comment to developers.
+    - Update Maintainer for upload to the archive.
+  * debian/rules:
+    - Override dh_install to use --fail-missing.
+
+  [ Sergio Schvezov ]
+  * Grabbing the latest is now the default (LP: #1163274)
+    - The -l option is now deprecated
+  * Attempt to start the adb server before executing anything (LP: #1143946) 
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Mon, 25 Mar 2013 14:31:18 -0400
+
+phablet-tools (0.8-0phablet2) raring; urgency=low
+
+  * phablet-flash: fix import of alternate settings to allow a full path
+    to a settings file
+
+ -- Alex Chiang <achiang@canonical.com>  Tue, 26 Mar 2013 14:59:44 -0700
+
+phablet-tools (0.8-0phablet1) raring; urgency=low
+
+  [ Ricardo Salveti de Araujo ]
+  * Improving the free size check by allowing >= 4 GB
+
+  [ Riccardo Padovani ]
+  * Fixing typo error (LP: #1139999)
+
+  [ Alex Chiang ]
+  * Extend phablet-tools to be a generic Android ROM flasher
+
+ -- Alex Chiang <achiang@canonical.com>  Thu, 21 Mar 2013 21:15:00 -0700
+
+phablet-tools (0.7-0phablet1) raring; urgency=low
+
+  [ Ricardo Salveti ]
+  * Fixing jenkins build id due changes at the stamp file (LP: #1154595)
+
+  [ Alistair Buxton ]
+  * Adds an option to only download image files and skip device flashing
+    (LP: #1153346)
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Wed, 13 Mar 2013 13:23:53 -0300
+
+phablet-tools (0.6-0phablet1) raring; urgency=low
+
+  [ Sergio Schvezov ]
+  * Use wget only for cdimage downloads.
+  * Adding option to get latest daily build.
+  * Adding conflicting options to conflict group
+  * Fixing phablet-flash description. LP: #1132967 
+
+  [ Mike Carifio ]
+  * Remember licence agreement.
+
+ -- Sergio Schvezov <sergio.schvezov@canonical.com>  Tue, 26 Feb 2013 13:09:38 -0300
+
+phablet-tools (0.5-0phablet2) raring; urgency=low
+
+  [ Michael Zanetti ]
+  * Fix phablet-network-setup -i with multiple devices attached
+
+  [ Sergio Schvezov ]
+  * Checking if enough free space is found on target device before flash
+  * Fixing changelog
+
+ -- Sergio Schvezov <sergio.schvezov@canonical.com>  Mon, 25 Feb 2013 11:46:10 -0300
+
+phablet-tools (0.5-0phablet1) raring; urgency=low
+
+  * Adding offline mode.
+
+ -- Sergio Schvezov <sergio.schvezov@canonical.com>  Sat, 23 Feb 2013 17:23:22 -0300
+
+phablet-tools (0.4-0phablet4) raring; urgency=low
+
+  * Do not require a vendor branch to initialize
+
+ -- Sergio Schvezov <sergio.schvezov@canonical.com>  Fri, 22 Feb 2013 10:58:25 -0300
+
+phablet-tools (0.4-0phablet3) quantal; urgency=low
+
+  * Require >= 4.2.2 version of adb and fastboot for device auth.
+
+ -- Loïc Minier <loic.minier@ubuntu.com>  Thu, 21 Feb 2013 15:54:49 +0100
+
+phablet-tools (0.4-0phablet2) quantal; urgency=low
+
+  * Replace curl with wget to avoid issue when resuming a completed download.
+
+ -- Loïc Minier <loic.minier@ubuntu.com>  Thu, 21 Feb 2013 13:54:00 +0100
+
+phablet-tools (0.4-0phablet1) quantal; urgency=low
+
+  * Fixing issues in phablet-flash
+  - Keyboard interrupt doesn't raise exception on license display
+  - Checking return code for stamp in appropriate location
+  * Adding repo tool
+  * Adding a bootstrap tool
+  * Adding a networking helper tool
+
+ -- Sergio Schvezov <sergio.schvezov@canonical.com>  Thu, 21 Feb 2013 02:08:53 -0300
+
+phablet-tools (0.3-0phablet1) quantal; urgency=low
+
+  * Fixing typo in recovery image for system
+
+ -- Sergio Schvezov <sergio.schvezov@canonical.com>  Wed, 20 Feb 2013 04:09:49 -0300
+
+phablet-tools (0.2-0ubuntu1) raring; urgency=low
+
+  * Setup to download from cdimage
+
+ -- Sergio Schvezov <sergio.schvezov@canonical.com>  Tue, 19 Feb 2013 18:17:56 -0300
+
+phablet-tools (0.1-0ubuntu1~raring) raring; urgency=low
+
+  * Initial release
+
+ -- Sergio Schvezov <sergio.schvezov@canonical.com>  Tue, 12 Feb 2013 12:58:31 -0300

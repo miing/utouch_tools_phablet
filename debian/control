@@ -1,0 +1,35 @@
+Source: phablet-tools
+Priority: extra
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: Sergio Schvezov <sergio.schvezov@canonical.com>
+Build-Depends: debhelper (>= 9.0.0), python (>= 2.7), python-setuptools,
+Standards-Version: 3.9.4
+Section: admin
+# If you aren't a member of ~phablet-team but need to upload
+# packaging changes, just go ahead. ~phablet-team will notice
+# and sync up the code again.
+Vcs-Bzr: https://code.launchpad.net/~phablet-team/phablet-tools/trunk
+Vcs-Browser: https://bazaar.launchpad.net/~phablet-team/phablet-tools/trunk/files
+
+Package: phablet-tools
+Section: admin
+Architecture: all
+Depends:
+ android-tools-adb (>= 4.2.2),
+ android-tools-fastboot (>= 4.2.2),
+ curl,
+ python-configobj,
+ python-launchpadlib,
+ python-requests,
+ python-xdg,
+ wget,
+ ${misc:Depends},
+ ${python:Depends},
+Description: Scripts to work with Phablet.
+ Installs Touch Developer Preview on Nexus devices, specifically the following:
+  - Galaxy Nexus
+  - Nexus 4
+  - Nexus 7
+  - Nexus 10
+ .
+ Additional tools included to bootstrap from source and setup networking
