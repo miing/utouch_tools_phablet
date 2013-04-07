@@ -1,43 +1,31 @@
-#! /usr/bin/env python2.7
-# This program is free software: you can redistribute it and/or modify it
-# under the terms of the the GNU General Public License version 3, as
-# published by the Free Software Foundation.
+#!/usr/bin/env python
+##########################################################################
+#
+# Copyright (c) 2013 Canonical Ltd.
+# Copyright (c) 2013 Miing.org <samuel.miing@gmail.com>
+# 
+# This program is free software: you can redistribute it and/or modify 
+# it under the terms of the the GNU General Public License version 3, 
+# as published by the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranties of
 # MERCHANTABILITY, SATISFACTORY QUALITY or FITNESS FOR A PARTICULAR
 # PURPOSE.  See the applicable version of the GNU General Public
 # License for more details.
-#.
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2013 Canonical, Ltd.
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+##########################################################################
 
-# TODO Install packages
-# TODO improve bzr branch setup
-# TODO allow new vendor setup from existing repo
 
-import argparse
-import logging
 import os
-import subprocess
-from os import path
+import sys
+import argparse
+
 from config import settings
-
-logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger()
-log.name = 'phablet-dev-bootstrap'
-
-repo_init = 'git://phablet.ubuntu.com/CyanogenMod/android.git'
-repo_branch = 'phablet-10.1'
-valid_vendors = ('maguro', 'mako', 'manta', 'grouper')
-ubuntu_dir = 'ubuntu'
-
-branches = {
-    'ubuntu/hybris': 'lp:phablet-extras/libhybris',
-    'ubuntu/platform-api': 'lp:platform-api',
-}
+from utils.subproc import check_call, check_output, CalledProcessError
 
 
 class StringSplitAction(argparse.Action):

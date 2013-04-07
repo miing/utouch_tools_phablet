@@ -1,31 +1,26 @@
-# -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
-# Copyright 2013 Canonical
+##########################################################################
 #
-# This program is free software: you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 3, as published
-# by the Free Software Foundation.
+# Copyright (c) 2013 Canonical Ltd.
+# Copyright (c) 2013 Miing.org <samuel.miing@gmail.com>
+# 
+# This program is free software: you can redistribute it and/or modify 
+# it under the terms of the the GNU General Public License version 3, 
+# as published by the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranties of
-# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
-# PURPOSE.  See the GNU General Public License for more details.
+# MERCHANTABILITY, SATISFACTORY QUALITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the applicable version of the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+##########################################################################
 
-# You should have received a copy of the GNU General Public License along
-# with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import subprocess
-import logging
 from config import settings
-
-log = logging.getLogger()
-
-
-def call(args):
-    subprocess.check_call(args, shell=True)
-
-
-def check_output(args):
-    return subprocess.check_output(args, shell=True)
+from utils.subproc import call, check_call, check_output
 
 
 class AndroidBridge(object):

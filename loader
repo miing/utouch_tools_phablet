@@ -1,36 +1,36 @@
-#! /usr/bin/env python2.7
-# This program is free software: you can redistribute it and/or modify it
-# under the terms of the the GNU General Public License version 3, as
-# published by the Free Software Foundation.
+#!/usr/bin/env python
+##########################################################################
+#
+# Copyright (c) 2013 Canonical Ltd.
+# Copyright (c) 2013 Miing.org <samuel.miing@gmail.com>
+# 
+# This program is free software: you can redistribute it and/or modify 
+# it under the terms of the the GNU General Public License version 3, 
+# as published by the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranties of
 # MERCHANTABILITY, SATISFACTORY QUALITY or FITNESS FOR A PARTICULAR
-# PURPOSE.  See the applicable version of the GNU Lesser General Public
+# PURPOSE.  See the applicable version of the GNU General Public
 # License for more details.
-#.
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2013 Canonical, Ltd.
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+##########################################################################
 
-import argparse
-import configobj
-import logging
+
 import os
 import re
+import sys
+import argparse
 import requests
-import subprocess
 import tempfile
-from os import path
-from phabletutils.adb import AndroidBridge
-from phabletutils.downloads import DownloadManager
-from config import settings
-from xdg.BaseDirectory import xdg_config_home
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
-log = logging.getLogger()
-log.name = 'phablet-deploy'
+from config import settings
+from utils.subproc import check_call, CalledProcessError
+from utils.adb import AndroidBridge
+from utils.downloads import DownloadManager
 
 
 def parse_arguments():
