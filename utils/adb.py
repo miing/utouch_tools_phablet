@@ -15,7 +15,7 @@
 
 import subprocess
 import logging
-
+from config import settings
 
 log = logging.getLogger()
 
