@@ -72,6 +72,18 @@ if SYSTEM_NAME == 'Linux':
 				'libgl1-mesa-glx:i386',
 				'zlib1g-dev:i386'
 			]
+			try:
+				import argparse
+			except ImportError:
+				BASE_DEPENDENCIES += [
+					'python-argparse'
+				]
+			try:
+				import requests
+			except ImportError:
+				BASE_DEPENDENCIES += [
+					'python-requests'
+				]
 		else:
 			BASE_DEPENDENCIES = None
 	elif DISTRO_NAME in ('SuSE', 'Fedora', 'Centos', 'Redhat'):
