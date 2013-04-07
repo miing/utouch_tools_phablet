@@ -132,7 +132,7 @@ UBUNTU_TOUCH_REPOS = {
 
 
 #####################
-# Devices      		#
+# Devices		    #
 #####################
 # All target devices for Ubuntu Touch available for now
 UTOUCH_VALID_DEVICES = (
@@ -144,7 +144,7 @@ UTOUCH_VALID_DEVICES = (
 UTOUCH_VALIDATE_DEVICE = True
 
 #####################
-# Images      		#
+# Images            #
 #####################
 # Locations to download from
 UTOUCH_IMAGES_DIR = 'images'
@@ -168,7 +168,7 @@ reboot
 
 
 #####################
-# Legal      		#
+# Legal             #
 #####################
 UTOUCH_LEGAL_ACCEPTED_PATH = '~/.phablet_accepted'
 UTOUCH_LEGAL_NOTICE = '''"Touch Developer Preview for Ubuntu" is released for free
