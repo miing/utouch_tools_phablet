@@ -157,19 +157,19 @@ def push_for_autodeploy(adb, artifact):
 
 @adb_errors
 def validate_device(adb):
-    '''Validates if the image would be installable on the target'''
-    df = adb.shell('df').split('\n')
-    try:
-        free_data = map(str.split,
+	'''Validates if the image would be installable on the target'''
+	df = adb.shell('df').split('\n')
+	try:
+		free_data = map(str.split,
                         filter(lambda s: s.startswith('/data '), df))[0][3]
-    except IndexError:
-        settings.LOG.error('Cannot find /data mountpoint')
-        sys.exit(1)
-    if free_data[-1:] == 'G' and float(free_data[:-1]) >= 4:
-        LOG.info('Storage requirements in /data satisfied')
-    else:
-        LOG.error('Not enough space in /data, found %s', free_data)
-        sys.exit(1)
+	except IndexError:
+		settings.LOG.error('Cannot find /data mountpoint')
+		sys.exit(1)
+	if free_data[-1:] == 'G' and float(free_data[:-1]) >= 4:
+		settings.LOG.info('Storage requirements in /data satisfied')
+	else:
+		settings.LOG.error('Not enough space in /data, found %s', free_data)
+		sys.exit(1)
 
 
 @adb_errors
@@ -243,48 +243,48 @@ def import_alt_settings(alternate_settings):
 
 
 def parse_arguments():
-    '''Parses arguments passed in to script'''
-    parser = argparse.ArgumentParser(
+	'''Parses arguments passed in to script'''
+	parser = argparse.ArgumentParser(
         description='''Phablet Flash Tool.
                        Grabs build from the network and deploys to device.
                        Does best effort to deploy in different ways.''')
-    parser.add_argument('-d',
+	parser.add_argument('-d',
                         '--device',
                         help='''Target device to deploy.''',
                         required=False,
                         choices=settings.UTOUCH_VALID_DEVICES,
                        )
-    parser.add_argument('-s',
+	parser.add_argument('-s',
                         '--serial',
                         help='''Device serial. Use when more than
                                 one device is connected.''',
                        )
-    parser.add_argument('--alternate-settings',
+	parser.add_argument('--alternate-settings',
                         help='''Alternate default settings (not common)''',
                        )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('-b',
+	group = parser.add_mutually_exclusive_group()
+	group.add_argument('-b',
                        '--bootstrap',
                        help='''Bootstrap the target device, this only
                                works on Nexus devices or devices that
                                use fastboot and are unlocked.''',
                        action='store_true',
                       )
-    group.add_argument('-D',
+	group.add_argument('-D',
                        '--download-only',
                        help='''Download image only, but do not flash device.
                                Use -d to override target device autodetection
                                if target device is not connected.''',
                        action='store_true',
                       )
-    parser.add_argument('-r',
+	parser.add_argument('-r',
                         '--revision',
                         required=False,
                         default=None,
                         help='Choose a specific build number to download.',
                        )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('-l',
+	group = parser.add_mutually_exclusive_group()
+	group.add_argument('-l',
                        '--latest',
                        action='store_const',
                        const=settings.UTOUCH_DAILY_URI,
@@ -293,7 +293,7 @@ def parse_arguments():
                        dest='uri',
                        help='''Pulls the latest daily image.'''
                       )
-    group.add_argument('-p',
+	group.add_argument('-p',
                        '--base-path',
                        required=False,
                        default=None,
@@ -302,12 +302,12 @@ def parse_arguments():
                                for real.
                                This option is completely offline.'''
                       )
-    group.add_argument('-u',
+	group.add_argument('-u',
                        '--uri',
                        required=False,
                        help='Alternate download uri',
                       )
-    return parser.parse_args()
+	return parser.parse_args()
 
 
 def main(args):
@@ -325,11 +325,11 @@ def main(args):
 	# Setup images directory and download
 	if not args.uri:
 		args.uri = settings.UTOUCH_MWCDEMO_URI
-	LOG.info('Download set to %s' % args.uri)
+	settings.LOG.info('Download set to %s' % args.uri)
 	if args.base_path:
-		LOG.warning('Files to be flashed will be '
-                    'taken from a previous download')
-		download_dir = args.base_path
+		settings.LOG.warning('Files to be flashed will be '
+                    		 'taken from a previous download')
+		images_dir = args.base_path
 		offline = True
 	else:
 		offline = False
@@ -354,7 +354,7 @@ def main(args):
 		download_mgr.download()
 	except KeyboardInterrupt:
 		settings.LOG.info('To continue downloading in the future, rerun the same '
-                 'command')
+                          'command')
 		sys.exit(1)
 	except CalledProcessError:
 		settings.LOG.error('Error while downloading, ensure connection')
@@ -373,7 +373,7 @@ def main(args):
                 download_mgr.files[device_img],
                 download_mgr.files[settings.UTOUCH_IMAGE])
             deploy_recovery_image(adb, download_mgr.files, recovery_file)
-
+    
 
 if __name__ == "__main__":
     args = parse_arguments()
