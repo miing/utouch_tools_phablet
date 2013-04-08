@@ -42,7 +42,12 @@ def _sync_target_repository(repo, path):
 		settings.LOG.info('Branching %s into %s' % (repo, path)) 
 		check_call(cmd, shell=True)
 	else: 
-		settings.LOG.warning('Skipping %s, already synced' % path)
+		settings.LOG.info('Updating branch %s to %s' % (repo, path))
+		old_curdir = os.getcwd()
+		os.chdir(path)
+		cmd = 'bzr update'
+		check_call(cmd, shell=True)
+		os.chdir(old_curdir)
 
 
 def _sync_ubuntu_android_repositories():
@@ -110,28 +115,22 @@ def sync_android_repositories(jobs='1', reference=None):
         sys.exit(1)
 
 
-def setup_sync_dir(target_directory, continue_sync=False):
-    '''Creates and changes to target directory'''
-    if not continue_sync:
-        try:
-            if os.path.isfile(target_directory):
-                raise OSError('%s is not a directory' %
-                             target_directory)
-            elif not os.path.isdir(target_directory):
-                settings.LOG.debug('Creating sync directory %s' % target_directory)
-                os.mkdir(target_directory)
-            elif os.listdir(target_directory):
-                raise OSError('%s is not empty and not using -c' %
-                             target_directory)
-        except OSError as e:
-            if not e.message:
-                settings.LOG.error('Cannot setup environment in %s' % 
-                          target_directory)
-            else:
-                settings.LOG.error(e.message)
-            sys.exit(1)
-    settings.LOG.info('Changing to workdir %s' % target_directory)
-    os.chdir(target_directory)
+def setup_sync_dir(target_directory):
+	'''Creates and changes to target directory'''
+	try:
+		if os.path.isfile(target_directory):
+			raise OSError('%s is not a directory' % target_directory)
+		elif not os.path.isdir(target_directory):
+			settings.LOG.debug('Creating sync directory %s' % target_directory)
+			os.mkdir(target_directory)
+	except OSError as e:
+		if not e.message:
+			settings.LOG.error('Cannot setup environment in %s' % target_directory)
+		else:
+			settings.LOG.error(e.message)
+		sys.exit(1)
+	settings.LOG.info('Changing to workdir %s' % target_directory)
+	os.chdir(target_directory)
 
 
 def install_base_dependencies():
@@ -146,39 +145,50 @@ def parse_arguments():
 	'''Parses arguments passed in to script'''
 	parser = argparse.ArgumentParser(
         description='Phablet Development Environment Setup Tool')
-	parser.add_argument('-b',
-                        '--base',
-                        dest='base',
-                        action='store_true',
-                        help='''Install base dependencies''',
-                        default=False,
-                       )
-	parser.add_argument('-j',
-                        '--jobs',
-                        type=int,
-                        dest='jobs',
-                        help='''Ammount of sync jobs''',
-                        default='1',
-                       ) 
-	parser.add_argument('-c',
-                        '--continue',
-                        dest='continue_sync',
-                        action='store_true',
-                        help='''Continue a previously started sync''',
-                        default=False,
-                       )
-	parser.add_argument('-r',
-                        '--reference',
-                        help='''Use another dev environment as reference for git''',
-                        default='',
-                       )
-	parser.add_argument('-d',
-                        '--device',
-                        dest='device',
-                        help='''Setup target device to build''',
-                        action='store',
-                        default=None
-                       )
+	group = parser.add_argument_group('base dependencies')
+	group.add_argument('-b',
+                       '--base',
+                       dest='base',
+                       action='store_true',
+                       help='''Install base dependencies''',
+                       default=False,
+                      )
+	group = parser.add_argument_group('android source tree')
+	group.add_argument('-a',
+                       '--android',
+                       dest='android',
+                       action='store_true',
+                       help='''Sync android source tree''',
+                       default=False,
+                      )
+	group.add_argument('-j',
+                       '--jobs',
+                       type=int,
+                       dest='jobs',
+                       help='''Ammount of sync jobs, default 1''',
+                       default='1',
+                      ) 
+	group.add_argument('-r',
+                       '--reference',
+                       help='''Use another dev environment as reference for git''',
+                       default='',
+                      )
+	group = parser.add_argument_group('ubuntu source tree')
+	group.add_argument('-u',
+                       '--ubuntu',
+                       dest='ubuntu',
+                       action='store_true',
+                       help='''Sync ubuntu source tree''',
+                       default=False,
+                      )
+	group = parser.add_argument_group('target device')
+	group.add_argument('-d',
+                       '--device',
+                       dest='device',
+                       help='''Setup target device to build''',
+                       action='store',
+                       default=None
+                      )
 	parser.add_argument('target_directory',
                         help='Target directory for sources',
                        )
@@ -189,11 +199,12 @@ def main(args):
 	if args.base:
 		install_base_dependencies()
 	if args.target_directory:
-		setup_sync_dir(os.path.abspath(os.path.expanduser(args.target_directory)),
-			           args.continue_sync)
-		sync_android_repositories(args.jobs, args.reference)
-		sync_ubuntu_repositories()
-		if args.vendors:
+		setup_sync_dir(os.path.abspath(os.path.expanduser(args.target_directory)))
+		if args.android:
+			sync_android_repositories(args.jobs, args.reference)
+		if args.ubuntu:
+			sync_ubuntu_repositories()
+		if args.device:
 			setup_target_device(args.device)
 
 
