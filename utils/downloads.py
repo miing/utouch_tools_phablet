@@ -25,14 +25,14 @@ from config import settings
 from utils.subproc import call, check_call
 
 
-def download(uri, target_file):
-    '''Downloads an artifact into target.'''
-    settings.LOG.info('Downloading %s' % uri)
+def download(uri, target):
+	'''Downloads an artifact into target.'''
+	settings.LOG.info('Downloading %s' % uri)
     
-    if uri.startswith(settings.UTOUCH_BASE_URI):
-        check_call(['wget', '-c', uri, '-O', target_file])
-    else:
-        check_call(['curl', '-C', '-', uri, '-o', target_file])
+	if uri.startswith(settings.UTOUCH_BASE_URI):
+		check_call(['wget', '-c', uri, '-O', target])
+	else:
+	check_call(['curl', '-C', '-', uri, '-o', target])
 
 
 class DownloadManager(object):
@@ -52,31 +52,35 @@ class DownloadManager(object):
 	def files(self):
 		return self._files
 
-	def _target_file(self, artifact):
-		'''Constructs the path for the file to download.'''
-		uri = '%s/%s' % (self._base_uri, artifact)
-		target = os.path.join(self._images_dir, '%s' % (artifact))
-		self._targets[artifact] = target
-		if not artifact.endswith('.md5sum'):
-			self._files[artifact] = target
-		return {'uri': uri, 'target_file': target}
-
-	def download(self, validate=True):
+	def download(self):
 		'''Downloads arget_uri.'''
 		for artifact in self._artifact_list:
-			if artifact == None:
+			if not artifact:
 				continue
-			target_file = self._target_file(artifact)
-			if not self._offline:
-				download(**target_file)
-			if validate:
-				md5file = '%s.md5sum' % artifact
-				if not self._offline:
-					download(**self._target_file(md5file))
-				self.validate(md5file)
+			target = os.path.join(self._download_dir, '%s' % (artifact))
+			self._files[artifact] = target
+			if self._offline:
+				continue
+			uri = '%s/%s' % (self._base_uri, artifact)
+			md5file = '%s.md5sum' % target
+			md5uri = '%s.md5sum' % uri
+			if self.is_downloaded(target, md5file):
+				continue
+			download(uri, target)
+			download(md5uri, md5file)
+			self.validate(md5file)
 			if artifact.endswith('.gz'):
-				call(['gunzip', self._files[artifact]])
-				self._files[artifact] = os.path.splitext(self._files[artifact])[0]
+				call(['gunzip', target])
+				self._files[artifact] = os.path.splitext(target)[0]
+
+	def is_downloaded(self, target, md5file):
+		'''Verify if a download is complete by validating againts it's hash.'''
+		try:
+			self.validate(md5file)
+		except CalledProcessError:
+			return False
+		else:
+			return True
 
 	def validate(self, artifact):
 		'''Validates downloaded files against md5sum.'''
