@@ -32,7 +32,7 @@ def download(uri, target):
 	if uri.startswith(settings.UTOUCH_BASE_URI):
 		check_call(['wget', '-c', uri, '-O', target])
 	else:
-	check_call(['curl', '-C', '-', uri, '-o', target])
+		check_call(['curl', '-C', '-', uri, '-o', target])
 
 
 class DownloadManager(object):
