@@ -53,7 +53,7 @@ class DownloadManager(object):
 		return self._files
 
 	def download(self):
-		'''Downloads arget_uri.'''
+		'''Downloads target_uri.'''
 		for artifact in self._artifact_list:
 			if not artifact:
 				continue
@@ -68,6 +68,7 @@ class DownloadManager(object):
 				continue
 			download(uri, target)
 			download(md5uri, md5file)
+			settings.LOG.info('Validatind download for %s' % (artifact))
 			self.validate(md5file)
 			if artifact.endswith('.gz'):
 				call(['gunzip', target])
@@ -84,5 +85,7 @@ class DownloadManager(object):
 
 	def validate(self, artifact):
 		'''Validates downloaded files against md5sum.'''
-		check_call(['md5sum', '-c', '%s' % artifact], 
-        		   cwd=self._images_dir)
+		with open(os.devnull, 'w') as DEVNULL:
+			check_call(['md5sum', '-c', '%s' % artifact],
+					   cwd=self._download_dir, stdout=DEVNULL,
+					   stderr=DEVNULL)

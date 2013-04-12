@@ -149,9 +149,7 @@ UTOUCH_VALIDATE_DEVICE = True
 # Locations to download from
 UTOUCH_IMAGES_DIR = 'images'
 UTOUCH_BASE_URI = 'http://cdimage.ubuntu.com'
-UTOUCH_MWCDEMO_URI = \
-	'%s/ubuntu-touch-preview/quantal/mwc-demo' % UTOUCH_BASE_URI
-UTOUCH_DAILY_URI = \
+UTOUCH_DOWNLOAD_URI = \
 	'%s/ubuntu-touch-preview/daily-preinstalled/current' % UTOUCH_BASE_URI
 
 # Images to flash into target device

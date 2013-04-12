@@ -286,12 +286,10 @@ def parse_arguments():
 	group = parser.add_mutually_exclusive_group()
 	group.add_argument('-l',
                        '--latest',
-                       action='store_const',
-                       const=settings.UTOUCH_DAILY_URI,
+                       action='store_true',
                        required=False,
-                       default=settings.UTOUCH_DAILY_URI,
-                       dest='uri',
-                       help='''Pulls the latest daily image.'''
+                       help='''(DEPRECATED) Pulls the latest daily image.
+                       		   This is the default action.'''
                       )
 	group.add_argument('-p',
                        '--base-path',
@@ -323,8 +321,11 @@ def main(args):
 	device = detect_device(adb, args.device)
 	
 	# Setup images directory and download
+	if args.latest:
+		settings.LOG.warning('The -l/--latest option is deprecated, latest is now the '
+		 					 'default')
 	if not args.uri:
-		args.uri = settings.UTOUCH_MWCDEMO_URI
+		args.uri = settings.UTOUCH_DOWNLOAD_URI
 	settings.LOG.info('Download set to %s' % args.uri)
 	if args.base_path:
 		settings.LOG.warning('Files to be flashed will be '
