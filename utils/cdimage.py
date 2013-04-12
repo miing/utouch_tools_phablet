@@ -48,18 +48,19 @@ def _get_revisions(uri):
 
 
 def get_available_revisions(cdimage_uri):
-    '''Returns all the releases available for a given cdimage project.'''
-    releases = _get_releases(cdimage_uri)
-    for release in releases:
-        release['revisions'] = _get_revisions(release['uri'])
-    return releases
+	'''Returns all the releases available for a given cdimage project.'''
+	settings.LOG.info('Retriving revisions available from %s' % cdimage_uri)
+	releases = _get_releases(cdimage_uri)
+	for release in releases:
+		release['revisions'] = _get_revisions(release['uri'])
+	return releases
 
 
 def display_revisions(revisions):
     for series in revisions:
-        print 'Available releases:'
+        settings.LOG.info('Available releases:')
         if series.has_key('revisions'):
             for rev in series['revisions']:
                 print '\t%s/%s' % (series['release'], rev)
         else:
-            print 'No releases for %s available' % rev['release'] 
+            settings.LOG.warning('No releases for %s available' % rev['release']) 

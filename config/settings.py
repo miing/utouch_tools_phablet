@@ -193,5 +193,12 @@ https://developers.google.com/android/nexus/drivers.
 # Logging           #
 #####################
 LOG_NAME = 'phablet'
-logging.basicConfig(level=logging.DEBUG)
+LOG_LEVELS = {
+	'CRITICAL' : logging.CRITICAL,
+    'ERROR' : logging.ERROR,
+    'WARNING' : logging.WARNING,
+    'INFO' : logging.INFO,
+    'DEBUG' : logging.DEBUG
+}
+logging.basicConfig(level=LOG_LEVELS['DEBUG'])
 LOG = logging.getLogger(LOG_NAME)
