@@ -31,6 +31,7 @@ from config import settings
 from utils.subproc import check_call, CalledProcessError
 from utils.adb import AndroidBridge
 from utils.downloads import DownloadManager
+from utils.cdimage import get_available_revisions, display_revisions
 
 
 def _write_utouch_legal(path):
@@ -277,13 +278,19 @@ def parse_arguments():
                                if target device is not connected.''',
                        action='store_true',
                       )
+	parser.add_argument('--list-revisions',
+                        action='store_true',
+                        required=False,
+                        default=False,
+                        help='List available revisions on cdimage and exits',
+                       )
+	group = parser.add_mutually_exclusive_group()
 	parser.add_argument('-r',
                         '--revision',
                         required=False,
                         default=None,
                         help='Choose a specific build number to download.',
                        )
-	group = parser.add_mutually_exclusive_group()
 	group.add_argument('-l',
                        '--latest',
                        action='store_true',
@@ -309,6 +316,13 @@ def parse_arguments():
 
 
 def main(args):
+	# List all revisions of images for Ubuntu Touch available
+	# before doing anything else if existing
+	if args.list_revisions:
+		revisions = get_available_revisions(settings.UTOUCH_IMAGES_URI)
+		display_revisions(revisions)
+		exit(0)
+		
 	# Try accepting the legal notice for Ubuntu Touch
 	accept_utouch_legal()
 	
@@ -324,7 +338,16 @@ def main(args):
 	if args.latest:
 		settings.LOG.warning('The -l/--latest option is deprecated, latest is now the '
 		 					 'default')
-	if not args.uri:
+	if args.revision:
+		if len(args.revision.split('/')) == 2:
+		# TODO add verification that uri exists
+			args.uri = '%s%s' % (settings.UTOUCH_IMAGES_URI, args.revision)
+		else:
+			settings.LOG.error('Improper use of revision, needs to be formatted like'
+                      		   '[series]/[revision]. Use --list-revisions to find'
+                      		   'the available revisions on cdimage')
+			exit(1)
+	elif not args.uri:
 		args.uri = settings.UTOUCH_DOWNLOAD_URI
 	settings.LOG.info('Download set to %s' % args.uri)
 	if args.base_path:
